@@ -1,9 +1,99 @@
 # ActionManagerHumanizer
 This tool will reveal for you occult mystery of Photoshop ActionDescriptors and will transform them into well known JSON strings and JS objects. You can change regular JS object as normal humans usually do and then transform it into ActionDescriptor with whom only masters are familiar
 
-## Example
+## Example - How to read current layer properties
 ```javascript
-#include Humanizer-0.1.jsx
+#include Humanizer-0.2.jsx
+
+var referenceObject = {
+	"null": {
+		"_enum": "ordinal",
+		"_ref": "layer",
+		"_value": "targetEnum"
+	}
+};
+var layerProperties = Humanizer.getObject(referenceObject);
+```
+## Example - How to read single layer property (faster)
+```javascript
+#include Humanizer-0.2.jsx
+
+var referenceObject = {
+	"null": {
+		"_ref": [
+			{
+				"_property": "layerID",
+				"_ref": "property"
+			}
+			,{
+				"_enum": "ordinal",
+				"_ref": "layer",
+				"_value": "targetEnum"
+			}
+		]
+	}
+};
+alert("LayerID is: " + Humanizer.getObject(referenceObject).layerID);
+```
+
+## Example - How to read get property and set modified property
+This will randomize text layer color.
+```javascript
+#include Humanizer-0.2.jsx
+
+// first we create reference for getting textKey property only
+var referenceObject = {
+	"null": {
+		"_ref": [
+		
+			// which property we want
+			{
+				"_property": "textKey",
+				"_ref": "property"
+			}
+			
+			// selected layer
+			,{
+				"_enum": "ordinal",
+				"_ref": "layer",
+				"_value": "targetEnum"
+			}
+		]
+	}
+};
+// Here is our text definition. 
+var textKey = Humanizer.getObject(referenceObject).textKey;
+// At this point we can simply read and change values same way as in normal JS object!
+
+// Get color property of first style range
+var color = textKey.textStyleRange[0].textStyle.color;									
+
+// randomize color channels
+color.red = Math.floor(Math.random() * 255);  	
+color.grain = Math.floor(Math.random() * 255);  // adobe did mistake. grain = green
+color.blue = Math.floor(Math.random() * 255);
+
+var objectToPlay = {
+
+	// this is reference. We are saying that we are targeting selected layer
+	"null": { 
+		"_enum": "ordinal",
+		"_ref": "textLayer",
+		"_value": "targetEnum"
+	},
+	
+	// here is our modified text definion
+	"to": textKey 
+}
+
+// here we run our modified object with desired layer reference
+// "set" is name for action. It means set Action Descriptor
+Humanizer.playObject ("set", objectToPlay); 
+```
+
+## Another Example for randomize text color
+```javascript
+#include Humanizer-0.2.jsx
 
 // first we load selected textLayer ActionDescriptor
 var ref2 = new ActionReference();
