@@ -1,6 +1,10 @@
 # ActionManagerHumanizer
 This tool will reveal for you occult mystery of Photoshop ActionDescriptors and will transform them into well known JSON strings and JS objects. You can change regular JS object as normal humans usually do and then transform it into ActionDescriptor with whom only masters are familiar
 
+
+## Warning
+Your development will be faster. But your script won't be fast as it would be in pure Action Manager code.
+
 ## Example - How to read current layer properties
 ```javascript
 #include Humanizer-0.2.jsx
