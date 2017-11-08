@@ -1,5 +1,5 @@
-﻿/**
-* @@@BUILDINFO@@@ Humanizer.jsx 0.1 Tue Oct 10 2017 19:18:26 GMT+0200
+/**
+* @@@BUILDINFO@@@ Humanizer.jsx 0.2 Wed Nov 08 2017 22:18:08 GMT+0100
 */
 
 /*
@@ -21,6 +21,12 @@
 	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
 	WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+	
+	Changelog:
+	==========
+	0.2 - ads getObject and playObject
+		- new example how to use this tool
+	0.1 - initial release
 */
 
 /*
@@ -40,10 +46,39 @@ if (typeof Humanizer !== "object") {
 (function () {
 
 	const ID = {
-			object: stringIDToTypeID("object"),
-			convertJSONdescriptor: stringIDToTypeID("convertJSONdescriptor"),
-			json: stringIDToTypeID( "json" )
+		object: stringIDToTypeID("object"),
+		convertJSONdescriptor: stringIDToTypeID("convertJSONdescriptor"),
+		json: stringIDToTypeID( "json" )
+	}
+	
+	////////////////////////
+	// Helpers
+	////////////////////////
+	
+	/* With this we do not care about charID, stringID or typeID. Use whatever you want. */
+	Humanizer._resolveID = function (id){
+		if (id.constructor == Number) {
+			return id;
+		} else if(id.constructor == String){
+			if(id.length > 0){
+				if(id.length === 4){
+					try { 
+						var typeID = charIDToTypeID(id);
+						if(typeIDToStringID(typeID) === ""){
+							return stringIDToTypeID(id); 
+						}
+						return typeID
+					} 
+					catch (e) { return stringIDToTypeID(id); }
+				}
+				return stringIDToTypeID(id);
+			}
 		}
+
+		Error.runtimeError(19, id);  // Bad Argument
+		return undefined;
+	}
+
 
 	////////////////////////
 	// Elementar functions
@@ -80,6 +115,14 @@ if (typeof Humanizer !== "object") {
 		return [key,convertedDesc];
 	}
 
+	Humanizer.playObject = function(actionID, object, dialogMode){
+		dialogMode = dialogMode || DialogModes.NO;
+		object = Humanizer.objectToDescriptor(object)[1];
+		var returnedDesc = app.executeAction(Humanizer._resolveID(actionID), object, dialogMode);
+		var result = Humanizer.descriptorToObject(returnedDesc);
+		return result;
+	}
+	
 	//////////////////////
 	// Shortcut functions
 	//////////////////////
@@ -91,10 +134,9 @@ if (typeof Humanizer !== "object") {
 	Humanizer.objectToDescriptor = function (object){
 		return Humanizer.jsonStringToDescriptor(Humanizer.objectToJsonString(object));
 	}
+
+	Humanizer.getObject = function(referenceObject){
+		if(!referenceObject){Error.runtimeError(19, id);  /* Bad Argument*/}		
+		return Humanizer.playObject("get", referenceObject, DialogModes.NO)
+	}
 }());
-
-
-
-
-
-
