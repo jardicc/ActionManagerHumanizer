@@ -1,5 +1,5 @@
 /**
-* @@@BUILDINFO@@@ Humanizer.jsx 0.2 Wed Nov 08 2017 22:18:08 GMT+0100
+* @@@BUILDINFO@@@ Humanizer.jsx 0.3 Wed Dec 27 2017 20:23:52 GMT+0100
 */
 
 /*
@@ -24,6 +24,8 @@
 	
 	Changelog:
 	==========
+	0.3 - ads AM code to humanizer code conversion
+		- ads option for code formating
 	0.2 - ads getObject and playObject
 		- new example how to use this tool
 	0.1 - initial release
@@ -55,6 +57,19 @@ if (typeof Humanizer !== "object") {
 	// Helpers
 	////////////////////////
 	
+	// str = JSON string ; spacesIndentation = integer, number of spaces
+	Humanizer.formatJSONString = function(str, spacesIndentation){
+		return JSON.stringify(JSON.parse(str), null, spacesIndentation);
+	}
+	
+	Humanizer._getBestNameFromID = function(id){
+		var bestName = app.typeIDToStringID(id);
+		if(bestName === ""){
+			bestName = app.typeIDToCharID(id);
+		}
+		return bestName;
+	}
+	
 	/* With this we do not care about charID, stringID or typeID. Use whatever you want. */
 	Humanizer._resolveID = function (id){
 		if (id.constructor == Number) {
@@ -85,6 +100,9 @@ if (typeof Humanizer !== "object") {
 	////////////////////////
 
 	Humanizer.descriptorToJsonString = function (descriptor){
+		if(!descriptor) {
+			return new ActionDescriptor();
+		}
 		var result;
 		var convertDesc = new ActionDescriptor();
 		convertDesc.putObject( ID.object, ID.object, descriptor );
@@ -98,8 +116,8 @@ if (typeof Humanizer !== "object") {
 		return result;
 	}
 
-	Humanizer.objectToJsonString = function (object){
-		var result = JSON.stringify(object);
+	Humanizer.objectToJsonString = function (object, spacesIndentation){
+		var result = JSON.stringify(object, null, spacesIndentation);
 		return result;
 	}
 
@@ -115,12 +133,39 @@ if (typeof Humanizer !== "object") {
 		return [key,convertedDesc];
 	}
 
-	Humanizer.playObject = function(actionID, object, dialogMode){
-		dialogMode = dialogMode || DialogModes.NO;
+	Humanizer.playObject = function(actionID, object, playDialogModes){
+		playDialogModes = playDialogModes || DialogModes.NO;
 		object = Humanizer.objectToDescriptor(object)[1];
-		var returnedDesc = app.executeAction(Humanizer._resolveID(actionID), object, dialogMode);
+		var returnedDesc = app.executeAction(Humanizer._resolveID(actionID), object, playDialogModes);
 		var result = Humanizer.descriptorToObject(returnedDesc);
 		return result;
+	}
+
+	Humanizer.playObjectReturnDesc = function(actionID, object, dialogMode){
+		dialogMode = dialogMode || DialogModes.NO;
+		object = Humanizer.objectToDescriptor(object)[1];
+		return app.executeAction(Humanizer._resolveID(actionID), object, dialogMode);
+	}
+
+	Humanizer.amCodeToHumanizedCode = function(code, spacesIndentation){
+		code = code.replace(/executeAction/g,'customHumanizerExecuteAction');
+		code = code.replace(/app.executeAction/g,'customHumanizerExecuteAction');
+		return eval(code);
+		
+		function customHumanizerExecuteAction(actionID, amDescriptor, playDialogModes){
+			actionID = Humanizer._getBestNameFromID(actionID);
+			var descObj = Humanizer.descriptorToJsonString(amDescriptor);
+			if(spacesIndentation){
+				descObj = Humanizer.formatJSONString(descObj, spacesIndentation);
+			}
+			if(!playDialogModes){
+				playDialogModes = DialogModes.NO;
+			}
+			var humanizerCode = """var descriptor = """+descObj+""";\n"""+
+			"Humanizer.playObject('"+actionID+"',descriptor,"+playDialogModes.toString()+" );";
+			
+			return humanizerCode;
+		}
 	}
 	
 	//////////////////////
@@ -131,12 +176,17 @@ if (typeof Humanizer !== "object") {
 		return Humanizer.jsonStringToObject(Humanizer.descriptorToJsonString(descriptor));
 	}
 
-	Humanizer.objectToDescriptor = function (object){
-		return Humanizer.jsonStringToDescriptor(Humanizer.objectToJsonString(object));
+	Humanizer.objectToDescriptor = function (object, spacesIndentation){
+		return Humanizer.jsonStringToDescriptor(Humanizer.objectToJsonString(object, spacesIndentation));
 	}
 
 	Humanizer.getObject = function(referenceObject){
 		if(!referenceObject){Error.runtimeError(19, id);  /* Bad Argument*/}		
 		return Humanizer.playObject("get", referenceObject, DialogModes.NO)
+	}
+
+	Humanizer.getDescriptor = function(referenceObject){
+		if(!referenceObject){Error.runtimeError(19, id);  /* Bad Argument*/}		
+		return Humanizer.playObjectReturnDesc("get", referenceObject, DialogModes.NO)
 	}
 }());
