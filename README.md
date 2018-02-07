@@ -4,6 +4,7 @@ This tool will reveal for you occult mystery of Photoshop ActionDescriptors and 
 
 ## Warning
 Your development will be faster. But your script won't be fast as it would be in pure Action Manager code.
+Photoshop CC 2015.5 and higher
 
 ## Example - How to read current layer properties
 ```javascript
@@ -392,3 +393,8 @@ descSetD.putObject( charIDToTypeID( "T   " ), charIDToTypeID( "TxLr" ), textDesc
 // action name is set descriptor and second parameter contains how and where
 executeAction( charIDToTypeID( "setd" ), descSetD, DialogModes.NO );
 ```
+
+## Known issues
+- "_path" on Windows should have four backslashes "\\\\"
+- "_path" on Mac should have single forwardslash "/"
+- "_path" on Mac in Photoshop CC 2015.5 doesn't even works
